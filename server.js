@@ -139,11 +139,40 @@ app.get("/widget.js", (req, res) => {
 })();
   `);
 });
+// --- Chat endpoint (THIS WAS MISSING) ---
+app.post("/chat", async (req, res) => {
+  try {
+    console.log("Incoming chat:", req.body);
+
+    const messages = Array.isArray(req.body?.messages)
+      ? req.body.messages
+      : [];
+
+    const completion = await openai.chat.completions.create({
+      model: MODEL,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        ...messages
+      ],
+      temperature: 0.2
+    });
+
+    const reply =
+      completion.choices?.[0]?.message?.content?.trim() ||
+      "Sorry, I didn’t understand that.";
+
+    res.json({ reply });
+  } catch (e) {
+    console.error("CHAT ERROR:", e);
+    res.status(500).json({ error: "chat_failed" });
+  }
+});
 const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
   console.log("Server running on port", PORT);
 });
+
 
 
 
