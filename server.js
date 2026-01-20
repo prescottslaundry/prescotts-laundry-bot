@@ -30,6 +30,7 @@ const twilioClient =
 app.get("/widget.js", (req, res) => {
   res.type("application/javascript").send(`
 (function(){
+  alert("Widget JS is running");
   if (window.__prescottsWidgetLoaded) return;
   window.__prescottsWidgetLoaded = true;
 
@@ -130,5 +131,6 @@ app.get("/widget.js", (req, res) => {
 })();
   `);
 });
+
 
 
