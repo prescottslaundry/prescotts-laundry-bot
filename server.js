@@ -33,36 +33,39 @@ app.get("/widget.js", (req, res) => {
   if (window.__prescottsWidgetLoaded) return;
   window.__prescottsWidgetLoaded = true;
 
+  const API_BASE = new URL(document.currentScript.src).origin;
+
   const btn = document.createElement('button');
   btn.innerText = 'Chat';
-  btn.setAttribute('aria-label','Open chat');
   btn.style.position='fixed';
   btn.style.right='20px';
   btn.style.bottom='20px';
   btn.style.zIndex='99999';
-  btn.style.padding='12px 14px';
+  btn.style.padding='12px 16px';
   btn.style.borderRadius='999px';
-  btn.style.border='0';
+  btn.style.border='none';
   btn.style.cursor='pointer';
   btn.style.boxShadow='0 8px 20px rgba(0,0,0,.2)';
+  btn.style.background='#000';
+  btn.style.color='#fff';
 
   const panel = document.createElement('div');
   panel.style.position='fixed';
   panel.style.right='20px';
-  panel.style.bottom='75px';
+  panel.style.bottom='80px';
   panel.style.width='360px';
   panel.style.maxWidth='calc(100vw - 40px)';
-  panel.style.height = '420px';
-  panel.style.maxHeight = 'calc(100vh - 140px)';
-  panel.style.display = 'flex';
-  panel.style.flexDirection = 'column';
+  panel.style.height='420px';
+  panel.style.maxHeight='calc(100vh - 120px)';
   panel.style.background='#fff';
-  panel.style.borderRadius='16px';
+  panel.style.borderRadius='14px';
   panel.style.boxShadow='0 10px 30px rgba(0,0,0,.25)';
   panel.style.zIndex='99999';
   panel.style.display='none';
   panel.style.overflow='hidden';
   panel.style.fontFamily='system-ui,-apple-system,Segoe UI,Roboto,Arial';
+  panel.style.display='flex';
+  panel.style.flexDirection='column';
 
   panel.innerHTML = \`
     <div style="padding:12px 14px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
@@ -105,89 +108,27 @@ app.get("/widget.js", (req, res) => {
     addMsg('You', text);
     thread.push({ role:'user', content:text });
 
-const API_BASE = new URL(document.currentScript.src).origin;
-
-const r = await fetch(API_BASE + '/chat', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ messages: thread })
-    });
-    const data = await r.json();
-    const reply = data?.reply || "Sorry—something went wrong.";
-    addMsg('Bot', reply);
-    thread.push({ role:'assistant', content: reply });
+    try {
+      const r = await fetch(API_BASE + '/chat', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ messages: thread })
+      });
+      const data = await r.json();
+      const reply = data?.reply || "Sorry—no response.";
+      addMsg('Bot', reply);
+      thread.push({ role:'assistant', content: reply });
+    } catch (e) {
+      addMsg('Bot', 'Connection error. Please try again.');
+    }
   }
 
-  btn.onclick = () => { panel.style.display = (panel.style.display==='none') ? 'block' : 'none'; };
+  btn.onclick = () => { panel.style.display = (panel.style.display==='none') ? 'flex' : 'none'; };
   close.onclick = () => { panel.style.display = 'none'; };
   send.onclick = ask;
   input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') ask(); });
 })();
   `);
 });
-
-// --- Website chat endpoint ---
-app.post("/chat", async (req, res) => {
-  console.log("Incoming chat:", req.body);
-  try {
-    const messages = Array.isArray(req.body?.messages) ? req.body.messages : [];
-    const completion = await openai.chat.completions.create({
-      model: MODEL,
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        ...messages
-      ],
-      temperature: 0.2
-    });
-
-    const reply = completion.choices?.[0]?.message?.content?.trim() || "";
-    res.json({ reply });
-  } catch (e) {
-    res.status(500).json({ error: "chat_failed" });
-  }
-});
-
-// --- Twilio SMS webhook ---
-app.post("/twilio/sms", async (req, res) => {
-  try {
-    const incoming = (req.body?.Body || "").trim();
-    const from = req.body?.From;
-
-    const completion = await openai.chat.completions.create({
-      model: MODEL,
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: incoming }
-      ],
-      temperature: 0.2
-    });
-
-    const reply = completion.choices?.[0]?.message?.content?.trim() || "Sorry—can you rephrase that?";
-
-    const twiml = new twilio.twiml.MessagingResponse();
-    twiml.message(reply);
-    res.type("text/xml").send(twiml.toString());
-
-    // Optional: notify owner on explicit human handoff keywords
-    const wantsHuman = /human|person|call me|talk to|representative|owner|manager|help me/i.test(incoming);
-    if (wantsHuman && twilioClient && OWNER_MOBILE_NUMBER && TWILIO_NUMBER) {
-      await twilioClient.messages.create({
-        from: TWILIO_NUMBER,
-        to: OWNER_MOBILE_NUMBER,
-        body: `Laundry Help Bot: customer ${from} asked for a human. Message: "${incoming}"`
-      });
-    }
-  } catch (e) {
-    const twiml = new twilio.twiml.MessagingResponse();
-    twiml.message("Sorry—system issue. Please call the store or try again in a minute.");
-    res.type("text/xml").send(twiml.toString());
-  }
-});
-
-app.get("/", (req, res) => res.send("OK"));
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running on", PORT));
-
 
 
