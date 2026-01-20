@@ -128,6 +128,7 @@ const r = await fetch(API_BASE + '/chat', {
 
 // --- Website chat endpoint ---
 app.post("/chat", async (req, res) => {
+  console.log("Incoming chat:", req.body);
   try {
     const messages = Array.isArray(req.body?.messages) ? req.body.messages : [];
     const completion = await openai.chat.completions.create({
@@ -187,5 +188,6 @@ app.get("/", (req, res) => res.send("OK"));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Server running on", PORT));
+
 
 
