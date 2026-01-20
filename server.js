@@ -30,7 +30,6 @@ const twilioClient =
 app.get("/widget.js", (req, res) => {
   res.type("application/javascript").send(`
 (function(){
-  alert("Widget JS is running");
   if (window.__prescottsWidgetLoaded) return;
   window.__prescottsWidgetLoaded = true;
 
@@ -136,6 +135,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Server running on port", PORT);
 });
+
 
 
 
