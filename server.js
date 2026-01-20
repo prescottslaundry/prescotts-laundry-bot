@@ -52,8 +52,10 @@ app.get("/widget.js", (req, res) => {
   panel.style.bottom='75px';
   panel.style.width='360px';
   panel.style.maxWidth='calc(100vw - 40px)';
-  panel.style.height='520px';
-  panel.style.maxHeight='calc(100vh - 120px)';
+  panel.style.height = '420px';
+  panel.style.maxHeight = 'calc(100vh - 140px)';
+  panel.style.display = 'flex';
+  panel.style.flexDirection = 'column';
   panel.style.background='#fff';
   panel.style.borderRadius='16px';
   panel.style.boxShadow='0 10px 30px rgba(0,0,0,.25)';
@@ -70,7 +72,7 @@ app.get("/widget.js", (req, res) => {
       </div>
       <button id="pl-close" style="border:0;background:transparent;font-size:18px;cursor:pointer;">✕</button>
     </div>
-    <div id="pl-msgs" style="padding:12px; height:400px; overflow:auto; font-size:14px;"></div>
+    <div id="pl-msgs" style="padding:12px; flex:1; overflow:auto; font-size:14px;"></div>
     <div style="padding:10px; border-top:1px solid #eee; display:flex; gap:8px;">
       <input id="pl-input" placeholder="Type a message…" style="flex:1; padding:10px; border:1px solid #ddd; border-radius:10px;" />
       <button id="pl-send" style="padding:10px 12px; border:0; border-radius:10px; cursor:pointer;">Send</button>
@@ -185,4 +187,5 @@ app.get("/", (req, res) => res.send("OK"));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Server running on", PORT));
+
 
