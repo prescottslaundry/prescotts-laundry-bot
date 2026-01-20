@@ -103,7 +103,9 @@ app.get("/widget.js", (req, res) => {
     addMsg('You', text);
     thread.push({ role:'user', content:text });
 
-    const r = await fetch('/chat', {
+const API_BASE = new URL(document.currentScript.src).origin;
+
+const r = await fetch(API_BASE + '/chat', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ messages: thread })
@@ -183,3 +185,4 @@ app.get("/", (req, res) => res.send("OK"));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Server running on", PORT));
+
