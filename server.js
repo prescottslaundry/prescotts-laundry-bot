@@ -148,18 +148,17 @@ app.post("/chat", async (req, res) => {
       ? req.body.messages
       : [];
 
-    const completion = await openai.chat.completions.create({
-      model: MODEL,
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        ...messages
-      ],
-      temperature: 0.2
-    });
+  const response = await openai.responses.create({
+  model: MODEL,
+  input: [
+    { role: "system", content: SYSTEM_PROMPT },
+    ...messages
+  ]
+});
 
-    const reply =
-      completion.choices?.[0]?.message?.content?.trim() ||
-      "Sorry, I didn’t understand that.";
+const reply =
+  response.output_text ||
+  "Sorry, I didn’t understand that.";
 
     res.json({ reply });
   } catch (e) {
@@ -172,6 +171,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Server running on port", PORT);
 });
+
 
 
 
